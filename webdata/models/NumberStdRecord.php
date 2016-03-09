@@ -10,5 +10,6 @@ class NumberStdRecord extends Pix_Table
         $this->_columns['set_id'] = array('type' => 'int');
         $this->_columns['time'] = array('type' => 'int');
         $this->_columns['value'] = array('type' => 'int');
+        $this->_columns['note'] = array('type' => 'text');
     }
 }
