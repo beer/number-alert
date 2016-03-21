@@ -38,7 +38,7 @@ class PatternChecker
         return $centers;
     }
 
-    public static function getClusteredPatterns($set)
+    public static function getClusteredPatterns($set, $k = 5)
     {
         $ret = $set->stdNumber();
         $day_hour_value = array();
@@ -68,7 +68,7 @@ class PatternChecker
         }
 
 
-        $clustered = MathLib::kmean($day_hour_rank, 5, array('PatternChecker', 'pattern_distance'), array('PatternChecker', 'patterns_center'), array('20160106', '20160109', '20160218'));
+        $clustered = MathLib::kmean($day_hour_rank, $k, array('PatternChecker', 'pattern_distance'), array('PatternChecker', 'patterns_center'), array('20160106', '20160109', '20160218'));
         uasort($clustered, function($a, $b) { return count($a) - count($b); });
 
         $ret = new StdClass;
