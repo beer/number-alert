@@ -1,0 +1,37 @@
+<?= $this->partial('/common/header.phtml', $this) ?>
+<div id="result"></div>
+<script>
+var obj = <?= json_encode($this->cluster_set) ?>;
+if (obj) {
+    $('#result').html('');
+    for (var i = 0; i < obj.clusters.length; i ++) {
+        $('#result').append($("<h1></h1>").text("cluster " + (i + 1)).css('clear', 'both'));
+
+        for (var j = 0; j < obj.clusters[i].records.length; j++) {
+            record = obj.clusters[i].records[j];
+            span_dom = $('<span></span>');
+            width = 200;
+            height = 100;
+            span_dom.css({width: width, height: height, float: 'left',border: '1px solid black'});
+            span_dom.append('<p>' + record.date + '(' + record.week_day + ')' + '</p>');
+            canvas_dom = $('<canvas>').attr({height: height - 20, width: width});
+            c = canvas_dom[0];
+            ctx = c.getContext("2d");
+            ctx.moveTo(0,0);
+            max_value = record.values.map(function(a) { return a[1]; }).sort(function(a,b){ return a - b; }).reverse()[0];
+            for (var k = 0; k < record.values.length; k ++) {
+                hour = record.values[k][0];
+                value = record.values[k][1];
+                ctx.lineTo(width * (hour - 6) / 24 ,Math.floor(height- (height - 20)* value / max_value));
+            }
+
+            ctx.stroke();
+            span_dom.append(canvas_dom);
+
+
+            $('#result').append(span_dom);
+        }
+    }
+}
+</script>
+<?= $this->partial('/common/footer.phtml', $this) ?>
