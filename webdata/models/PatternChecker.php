@@ -20,6 +20,9 @@ class PatternChecker
 
             $long_hours[$max_hour] = $max_diff;
             unset($tmp_hour_value[$max_hour]);
+            if (!$tmp_hour_value) {
+                break;
+            }
             $tmp_hour_value = array_combine(array_keys($tmp_hour_value), range(0, count($tmp_hour_value) - 1));
             unset($p_hour_value[$max_hour]);
             $p_hour_value = array_combine(array_keys($p_hour_value), range(0, count($p_hour_value) - 1));
@@ -44,7 +47,7 @@ class PatternChecker
         $day_hour_value = array();
 
         // 先把數字都塞進日期中
-        $split_hour = 6;
+        $split_hour = 5;
         foreach (NumberStdRecord::search(array('set_id' => $set->set_id)) as $record) {
             $ymd = date('Ymd', $record->time - $split_hour * 3600);
             $hour = date('G', $record->time);
@@ -68,7 +71,7 @@ class PatternChecker
         }
 
 
-        $clustered = MathLib::kmean($day_hour_rank, $k, array('PatternChecker', 'pattern_distance'), array('PatternChecker', 'patterns_center'), array('20160106', '20160109', '20160218'));
+        $clustered = MathLib::kmean($day_hour_rank, $k, array('PatternChecker', 'pattern_distance'), array('PatternChecker', 'patterns_center'));
         uasort($clustered, function($a, $b) { return count($a) - count($b); });
 
         $ret = new StdClass;
