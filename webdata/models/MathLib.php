@@ -64,18 +64,12 @@ class MathLib
             $max_distance = null;
             $max_match = null;
             foreach ($dataset as $id => $v) {
-                $min_distance = null;
+                $distance = 0;
                 foreach ($centeroids as $center_v) {
-                    $distance = $distance_func($v, $center_v);
-                    if (is_null($min_distance) or $distance < $min_distance) {
-                        $min_distance = $distance;
-                        if ($distance == 0) {
-                            break;
-                        }
-                    }
+                    $distance += $distance_func($v, $center_v);
                 }
-                if (is_null($max_distance) or $min_distance > $max_distance) {
-                    $max_distance = $min_distance;
+                if (is_null($max_distance) or $distance > $max_distance) {
+                    $max_distance = $distance;
                     $max_match = $id;
                 }
             }
