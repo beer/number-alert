@@ -79,8 +79,8 @@ class MathLib
                     $max_match = $id;
                 }
             }
-            $centeroids[] = $dataset[$id];
-            unset($dataset[$id]);
+            $centeroids[] = $dataset[$max_match];
+            unset($dataset[$max_match]);
         }
         return $centeroids;
         return array_map(function($k) use ($dataset) { return $dataset[$k]; }, array_rand($dataset, $k));
