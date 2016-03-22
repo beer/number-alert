@@ -57,7 +57,7 @@ class PatternChecker
         $day_hour_rank = array();
         // 把人氣變成只取排名
         foreach ($day_hour_value as $day => $hour_value) {
-            if (count($hour_value) != 24) {
+            if (strpos($set->name, 'ptt') === 0 and count($hour_value) != 24) {
                 // 資料不滿 24hr 的先不列入計算
                 //error_log("skip $day");
                 unset($day_hour_value[$day]);
