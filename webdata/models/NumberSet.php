@@ -93,7 +93,7 @@ class NumberSetRow extends Pix_Table_Row
                 }
                 $note->max = intval(max($values));
                 $note->min = intval(min($values));
-                $note->var = MathLib::getVar($values);
+                //$note->var = MathLib::getVar($values);
                 $avg = floor(array_sum($values) / count($values));
                 if (!is_null($prev_time) and $current_std_time - $prev_time == 3600) {
                     $note->diff = $avg - $prev_avg;
