@@ -5,6 +5,9 @@ class PatternChecker
     public function pattern_distance($tmp_hour_value, $p_hour_value)
     {
         $long_hours = array();
+        if (count($tmp_hour_value) != count($p_hour_value)) {
+            return 100000;
+        }
         while (true) {
             $hours = array_keys($tmp_hour_value);
             $hour_diff = array_combine($hours, array_map(function($hour) use ($tmp_hour_value, $p_hour_value) {
@@ -77,16 +80,26 @@ class PatternChecker
         $ret = new StdClass;
         $ret->clusters = array();
         foreach ($clustered as $cluster_id => $dates) {
+            if ($dates) {
+                $center = PatternChecker::patterns_center(array_map(function($d) use ($day_hour_rank) {
+                    return $day_hour_rank[$d];
+                }, $dates));
+            } else {
+                $center = array();
+            }
             $ret->clusters[] = array(
                 'records' => array_map(function($d) use ($day_hour_value) {
-                    $hour_value = $day_hour_value[$d];
+                    list($distance, $date) = $d;
+                    $hour_value = $day_hour_value[$date];
                     ksort($hour_value);
                     return array(
-                        'date' => $d,
-                        'week_day' => date('D', strtotime($d)),
+                        'date' => $date,
+                        'distance' => $distance,
+                        'week_day' => date('D', strtotime($date)),
                         'values' => array_values(array_map(function($hour) use ($hour_value) { return array($hour, $hour_value[$hour]); }, array_keys($hour_value))),
                     ); 
                 }, $dates),
+                'center' => $center,
             );
         }
         return $ret;
