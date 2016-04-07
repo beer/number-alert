@@ -14,7 +14,7 @@ if (obj) {
             width = 200;
             height = 100;
             span_dom.css({width: width, height: '100%', float: 'left',border: '1px solid black'});
-            span_dom.append('<p>' + record.date + '(' + record.week_day + ')' + '</p>');
+            span_dom.append('<p>' + record.date + '(' + record.week_day + ') ' + record.tags.join(',') + '</p>');
             str = '<p>distance=' + record.distance;
             if (record.diff.length) {
                 str += ': ' + record.diff.map(function(d) { return d[0] + '(' + d[1] + ')'; }).join(',');
