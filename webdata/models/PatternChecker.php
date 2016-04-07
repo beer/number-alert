@@ -82,8 +82,10 @@ class PatternChecker
         foreach ($clustered as $cluster_id => $dates) {
             if ($dates) {
                 $center = PatternChecker::patterns_center(array_map(function($d) use ($day_hour_rank) {
-                    return $day_hour_rank[$d];
+                    return $day_hour_rank[$d[1]];
                 }, $dates));
+                arsort($center);
+                $center = array_map(function($k) use ($center) { return array($k, $center[$k]); }, array_keys($center));
             } else {
                 $center = array();
             }
