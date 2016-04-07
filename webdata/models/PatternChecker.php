@@ -69,6 +69,7 @@ class PatternChecker
             }
             $day_hour_value[$ymd][$hour] = intval($record->value);
         }
+        $date_tags = TimeTag::findTagsByTimes(1, array_keys($day_hour_value));
 
         $day_hour_rank = array();
         // 把人氣變成只取排名
@@ -101,7 +102,7 @@ class PatternChecker
             $center_rank = array_combine(array_map(function($a) { return $a[0]; }, $center), array_map(function($a) { return $a[1]; }, $center));
             asort($center_rank);
             $ret->clusters[] = array(
-                'records' => array_map(function($d) use ($day_hour_value, $day_hour_rank, $center, $center_rank) {
+                'records' => array_map(function($d) use ($day_hour_value, $day_hour_rank, $center, $center_rank, $date_tags) {
                     list($distance, $date) = $d;
                     $hour_value = $day_hour_value[$date];
                     $hour_rank = $day_hour_rank[$date];
@@ -113,6 +114,7 @@ class PatternChecker
                         'week_day' => date('D', strtotime($date)),
                         'values' => array_values(array_map(function($hour) use ($hour_value) { return array($hour, $hour_value[$hour]); }, array_keys($hour_value))),
                         'diff' => PatternChecker::get_pattern_diff($hour_rank, $center_rank),
+                        'tags' => $date_tags[$date],
                     ); 
                 }, $dates),
                 'center' => $center,
