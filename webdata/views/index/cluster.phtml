@@ -13,8 +13,14 @@ if (obj) {
             span_dom = $('<span></span>');
             width = 200;
             height = 100;
-            span_dom.css({width: width, height: height, float: 'left',border: '1px solid black'});
+            span_dom.css({width: width, height: '100%', float: 'left',border: '1px solid black'});
             span_dom.append('<p>' + record.date + '(' + record.week_day + ')' + '</p>');
+            str = '<p>distance=' + record.distance;
+            if (record.diff.length) {
+                str += ': ' + record.diff.map(function(d) { return d[0] + '(' + d[1] + ')'; }).join(',');
+            }
+            str += '</p>';
+            span_dom.append(str);
             canvas_dom = $('<canvas>').attr({height: height - 20, width: width});
             c = canvas_dom[0];
             ctx = c.getContext("2d");
