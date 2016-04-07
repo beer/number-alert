@@ -18,16 +18,16 @@ class TimeTag extends Pix_Table
 
     public function findTagsByTimes($group, $times)
     {
-        $ret = array();
+        $ret = new StdClass;
         if (!$times) {
             return $ret;
         }
         $records = TimeTag::search(array('group' => intval($group)))->searchIn('time', $times);
         foreach ($records as $record) {
-            if (!array_key_exists($record->time, $ret)) {
-                $ret[$record->time] = array();
+            if (!property_exists($ret, $record->time)) {
+                $ret->{$record->time} = array();
             }
-            $ret[$record->time][] = $record->tag;
+            $ret->{$record->time}[] = $record->tag;
         }
         return $ret;
     }
