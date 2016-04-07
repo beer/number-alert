@@ -109,12 +109,14 @@ class MathLib
                         }
                     }
                 }
-                $cluster_set[$min_center][] = $dataset_id;
+                $cluster_set[$min_center][] = array($min_distance, $dataset_id);
             }
+
 
             foreach ($cluster_set as $id => $data_ids) {
                 if ($data_ids) {
-                    $centeroids[$id] = $centeroid_func(array_map(function($k) use ($dataset) { return $dataset[$k]; }, $data_ids));
+                    usort($cluster_set[$id], function($a, $b) { return $a[0] - $b[0]; });
+                    $centeroids[$id] = $centeroid_func(array_map(function($k) use ($dataset) { return $dataset[$k[1]]; }, $data_ids));
                 } else {
                     $centeroids[$id] = null;
                 }
