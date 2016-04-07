@@ -4,18 +4,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title></title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>
-<script src="/static/main.js"></script>
-<script src="/static/js-base64-master/base64.min.js"></script>
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/css/bootstrap.css">
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="/static/jqgrid/css/ui.jqgrid.css" type="text/css" media="all" />
-<script src="/static/jqgrid/js/i18n/grid.locale-tw.js"></script>
-<script src="/static/jqgrid/js/jquery.jqGrid.min.js"></script>
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/base/jquery-ui.css">
 <script type="text/javascript">
-main.params = <?= json_encode($this->params) ?>;
 <?php if (getenv('GOOGLEANALYTICS_ACCOUNT')) { ?>
 var _gaq = _gaq || [];
 _gaq.push(['_setAccount', <?= json_encode(getenv('GOOGLEANALYTICS_ACCOUNT')) ?>]);
@@ -32,7 +23,7 @@ _gaq.push(['_trackPageview']);
 <body class="<?= $this->escape($this->body_class) ?>">
 <div class="navbar">
     <div class="navbar-inner">
-        <a class="brand" href="/">Github viewer</a>
+        <a class="brand" href="/">Number Alert</a>
         <ul class="nav">
             <li>
             <a href="/">Home</a>
