@@ -1,2 +1,7 @@
 <?= $this->partial('/common/header.phtml', $this) ?>
+<ul>
+<?php foreach (NumberSet::search(1) as $set) { ?>
+<li><a href="/index/cluster?id=<?= urlencode($set->name) ?>"><?= htmlspecialchars($set->name) ?></a></li>
+<?php } ?>
+</ul>
 <?= $this->partial('/common/footer.phtml', $this) ?>
