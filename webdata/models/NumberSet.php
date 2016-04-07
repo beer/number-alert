@@ -141,12 +141,14 @@ class NumberSet extends Pix_Table
         $this->addIndex('name', array('name'), 'unique');
     }
 
-    public static function getSet($name)
+    public static function getSet($name, $auto_create = true)
     {
         if (!$set = NumberSet::find_by_name($name)) {
-            $set = NumberSet::insert(array(
-                'name' => $name,
-            ));
+            if ($auto_create) {
+                $set = NumberSet::insert(array(
+                    'name' => $name,
+                ));
+            }
         }
         return $set;
     }
