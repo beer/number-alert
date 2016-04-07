@@ -114,7 +114,7 @@ class PatternChecker
                         'week_day' => date('D', strtotime($date)),
                         'values' => array_values(array_map(function($hour) use ($hour_value) { return array($hour, $hour_value[$hour]); }, array_keys($hour_value))),
                         'diff' => PatternChecker::get_pattern_diff($hour_rank, $center_rank),
-                        'tags' => $date_tags[$date],
+                        'tags' => $date_tags->{$date} ?: array(),
                     ); 
                 }, $dates),
                 'center' => $center,
