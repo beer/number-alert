@@ -1,7 +1,7 @@
 <?= $this->partial('/common/header.phtml', $this) ?>
 <div id="result"></div>
 <script>
-var obj = <?= json_encode($this->cluster_set) ?>;
+var obj = <?= json_encode($this->cluster_set, JSON_PRETTY_PRINT) ?>;
 if (obj) {
     $('#result').html('');
     for (var i = 0; i < obj.clusters.length; i ++) {
