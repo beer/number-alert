@@ -109,20 +109,95 @@ class MathLib
                         }
                     }
                 }
-                $cluster_set[$min_center][] = array($min_distance, $dataset_id);
+                $cluster_set[$min_center][$dataset_id] = array($min_distance, $dataset_id);
             }
 
-
+            $centeroids = array();
             foreach ($cluster_set as $id => $data_ids) {
+                $data_ids = array_values($data_ids);
+                $cluster_set[$id] = $data_ids;
                 if ($data_ids) {
                     usort($cluster_set[$id], function($a, $b) { return $a[0] - $b[0]; });
                     $centeroids[$id] = $centeroid_func(array_map(function($k) use ($dataset) { return $dataset[$k[1]]; }, $data_ids));
                 } else {
-                    $centeroids[$id] = null;
+                    unset($cluster_set[$id]);
                 }
             }
+            ksort($cluster_set);
+            ksort($centeroids);
+            $cluster_set = array_values($cluster_set);
+            $centeroids = array_values($centeroids);
+
+            list($cluster_set, $centeroids) = self::mergeCenteroids($dataset, $cluster_set, $centeroids, $distance_func, $centeroid_func);
+
+            if (count($centeroids) < $k) {
+                $distance_map = array();
+                foreach ($cluster_set as $cluster_id => $data_ids) {
+                    if (!$data_ids) {
+                        continue;
+                    }
+                    foreach ($data_ids as $distance_setid) {
+                        list($distance, $dataset_id) = $distance_setid;
+                        if ($distance > 3) {
+                            $distance_map[$cluster_id . '-' . $dataset_id] = $distance;
+                        }
+                    }
+                }
+                // 把 distance 最大的挖出來補足
+                arsort($distance_map);
+                $distance_map = array_slice($distance_map, 0, $k - count($centeroids));
+                foreach ($distance_map as $set_data_id => $distance) {
+                    list($cluster_id, $dataset_id) = explode('-', $set_data_id);
+                    $cluster_set[] = array(
+                        $dataset_id => array(0, $dataset_id),
+                    );
+                    unset($cluster_set[$cluster_id][$dataset_id]);
+                }
+            }
+
         }
         return $cluster_set;
+    }
+
+    /**
+     * mergeCenteroids 把 centeroids 太接近的合在一起
+     * 
+     * @param array $cluster_set 
+     * @param array $centeroids 
+     * @param callable $distance_func 
+     * @param callable $centeroid_func
+     * @access public
+     * @return array
+     */
+    public function mergeCenteroids($dataset, $cluster_set, $centeroids, $distance_func, $centeroid_func)
+    {
+        for ($i = 0; $i < count($centeroids); $i ++) {
+            for ($j = $i + 1; $j < count($centeroids); $j ++) {
+                if (is_null($centeroids[$j])) {
+                    continue;
+                }
+
+                $distance = $distance_func($centeroids[$i], $centeroids[$j]);
+                if ($distance >= 3) {
+                    continue;
+                }
+
+                $cluster_set[$i] = array_merge($cluster_set[$i], $cluster_set[$j]);
+                $centeroids[$i] = $centeroid_func(array_map(function($k) use ($dataset) { return $dataset[$k[1]]; }, $cluster_set[$i]));
+                $cluster_set[$i] = array_map(function($record) use ($dataset, $distance_func, $centeroids, $i) {
+                    return array($distance_func($centeroids[$i], $dataset[$record[1]]), $record[1]);
+                }, $cluster_set[$i]);
+                usort($cluster_set[$i], function($a, $b) { return $a[0] - $b[0]; });
+
+                unset($centeroids[$j]);
+                unset($cluster_set[$j]); 
+                $centeroids = array_values($centeroids);
+                $cluster_set = array_values($cluster_set);
+
+                return self::mergeCenteroids($dataset, $cluster_set, $centeroids, $distance_func, $centeroid_func);
+            }
+        }
+        return array($cluster_set, $centeroids);
     }
 }
 
