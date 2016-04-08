@@ -107,6 +107,7 @@ class PatternChecker
                     $hour_value = $day_hour_value[$date];
                     $hour_rank = $day_hour_rank[$date];
                     ksort($hour_value);
+                    $distance = PatternChecker::pattern_distance($hour_rank, $center_rank);
 
                     return array(
                         'date' => $date,
