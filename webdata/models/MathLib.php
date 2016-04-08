@@ -83,15 +83,15 @@ class MathLib
     public function kmean($dataset, $k, $distance_func, $centeroid_func, $init_centeriods = array())
     {
         $centeroids = self::getRandomCenteriods($dataset, $k, $distance_func, $init_centeriods);
-        $old_centeroids = null;
         $cluster_set = null;
+        $showed_centeroids = array();
         for ($i = 0; $i < 100; $i ++) {
-            error_log($i);
-            if (!is_null($old_centeroids) and $old_centeroids == $centeroids) {
+            $centeroid_hash = md5(json_encode($centeroids));
+            if (array_key_exists($centeroid_hash, $showed_centeroids)) {
                 break;
             }
-            $cluster_set = array_fill(0, count($cluster_set), array());
-            $old_centeroids = $centeroids;
+            $showed_centeroids[$centeroid_hash] = true;
+            $cluster_set = array_fill(0, count($centeroids), array());
 
             foreach ($dataset as $dataset_id => $v) {
                 $min_distance = null;
@@ -151,6 +151,7 @@ class MathLib
                     $cluster_set[] = array(
                         $dataset_id => array(0, $dataset_id),
                     );
+                    $centeroids[] = $dataset[$dataset_id];
                     unset($cluster_set[$cluster_id][$dataset_id]);
                 }
             }
