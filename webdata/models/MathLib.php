@@ -150,12 +150,14 @@ class MathLib
                 foreach ($distance_map as $set_data_id => $distance) {
                     list($cluster_id, $dataset_id) = explode('-', $set_data_id);
                     $cluster_set[] = array(
-                        $dataset_id => array(0, $dataset_id),
+                        array(0, $dataset_id),
                     );
                     $centeroids[] = $dataset[$dataset_id];
                     unset($cluster_set[$cluster_id][$dataset_id]);
                 }
+
             }
+            $cluster_set = array_values($cluster_set);
 
         }
         return $cluster_set;
@@ -190,6 +192,7 @@ class MathLib
                     return array($distance_func($centeroids[$i], $dataset[$record[1]]), $record[1]);
                 }, $cluster_set[$i]);
                 usort($cluster_set[$i], function($a, $b) { return $a[0] - $b[0]; });
+                $cluster_set[$i] = array_values($cluster_set[$i]);
 
                 unset($centeroids[$j]);
                 unset($cluster_set[$j]); 
