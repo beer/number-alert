@@ -2,16 +2,24 @@
 
 class PatternChecker
 {
+    public function getRankFromValues($hour_value)
+    {
+        asort($hour_value);
+        return array_flip(array_keys($hour_value));
+    }
+
     public function get_pattern_diff($tmp_hour_value, $p_hour_value)
     {
         $long_hours = array();
         if (count($tmp_hour_value) != count($p_hour_value)) {
             return false;
         }
+        $tmp_hour_rank = self::getRankFromValues($tmp_hour_value);
+        $p_hour_rank = self::getRankFromValues($p_hour_value);
         while (true) {
-            $hours = array_keys($tmp_hour_value);
-            $hour_diff = array_combine($hours, array_map(function($hour) use ($tmp_hour_value, $p_hour_value) {
-                return abs($tmp_hour_value[$hour] - $p_hour_value[$hour]);
+            $hours = array_keys($tmp_hour_rank);
+            $hour_diff = array_combine($hours, array_map(function($hour) use ($tmp_hour_rank, $p_hour_rank) {
+                return abs($tmp_hour_rank[$hour] - $p_hour_rank[$hour]);
             }, $hours));
             arsort($hour_diff);
 
@@ -22,13 +30,13 @@ class PatternChecker
             }
 
             $long_hours[$max_hour] = $max_diff;
-            unset($tmp_hour_value[$max_hour]);
-            if (!$tmp_hour_value) {
+            unset($tmp_hour_rank[$max_hour]);
+            if (!$tmp_hour_rank) {
                 break;
             }
-            $tmp_hour_value = array_combine(array_keys($tmp_hour_value), range(0, count($tmp_hour_value) - 1));
-            unset($p_hour_value[$max_hour]);
-            $p_hour_value = array_combine(array_keys($p_hour_value), range(0, count($p_hour_value) - 1));
+            $tmp_hour_rank= array_combine(array_keys($tmp_hour_rank), range(0, count($tmp_hour_rank) - 1));
+            unset($p_hour_rank[$max_hour]);
+            $p_hour_rank = array_combine(array_keys($p_hour_rank), range(0, count($p_hour_rank) - 1));
 
         }
         return array_map(function($k) use ($long_hours) { return array($k, $long_hours[$k]); }, array_keys($long_hours));;
@@ -74,54 +82,49 @@ class PatternChecker
         }
         $date_tags = TimeTag::findTagsByTimes(1, array_keys($day_hour_value));
 
-        $day_hour_rank = array();
         // 把人氣變成只取排名
         foreach ($day_hour_value as $day => $hour_value) {
             if (strpos($set->name, 'ptt') === 0 and count($hour_value) != 24) {
                 // 資料不滿 24hr 的先不列入計算
                 //error_log("skip $day");
                 unset($day_hour_value[$day]);
-            } else {
-                asort($day_hour_value[$day]);
-                $day_hour_rank[$day] = array_flip(array_keys($day_hour_value[$day]));
             }
         }
 
 
-        $clustered = MathLib::kmean($day_hour_rank, $k, array('PatternChecker', 'pattern_distance'), array('PatternChecker', 'patterns_center'));
+        $clustered = MathLib::kmean($day_hour_value, $k, array('PatternChecker', 'pattern_distance'), array('PatternChecker', 'patterns_center'));
         uasort($clustered, function($a, $b) { return count($a) - count($b); });
 
         $ret = new StdClass;
         $ret->clusters = array();
-        foreach ($clustered as $cluster_id => $dates) {
-            if ($dates) {
-                $center = PatternChecker::patterns_center(array_map(function($d) use ($day_hour_rank) {
-                    return $day_hour_rank[$d[1]];
-                }, $dates));
-                $center = array_map(function($k) use ($center) { return array($k, $center[$k]); }, array_keys($center));
+        foreach ($clustered as $cluster_id => $distance_dates) {
+            if ($distance_dates) {
+                $center_value = PatternChecker::patterns_center(array_map(function($distance_date) use ($day_hour_value) {
+                    list($distance, $date) = $distance_date;
+                    return $day_hour_value[$date];
+                }, $distance_dates));
             } else {
-                $center = array();
+                $center_value = array();
             }
-            $center_rank = array_combine(array_map(function($a) { return $a[0]; }, $center), array_map(function($a) { return $a[1]; }, $center));
-            asort($center_rank);
+
             $ret->clusters[] = array(
-                'records' => array_map(function($d) use ($day_hour_value, $day_hour_rank, $center, $center_rank, $date_tags) {
-                    list($distance, $date) = $d;
+                'records' => array_map(function($distance_date) use ($day_hour_value, $center_value, $date_tags) {
+                    list($distance, $date) = $distance_date;
                     $hour_value = $day_hour_value[$date];
-                    $hour_rank = $day_hour_rank[$date];
                     ksort($hour_value);
-                    $distance = PatternChecker::pattern_distance($hour_rank, $center_rank);
+                    $distance = PatternChecker::pattern_distance($hour_value, $center_value);
 
                     return array(
                         'date' => $date,
                         'distance' => $distance,
                         'week_day' => date('D', strtotime($date)),
                         'values' => array_values(array_map(function($hour) use ($hour_value) { return array($hour, $hour_value[$hour]); }, array_keys($hour_value))),
-                        'diff' => PatternChecker::get_pattern_diff($hour_rank, $center_rank),
+                        'diff' => PatternChecker::get_pattern_diff($hour_value, $center_value),
                         'tags' => $date_tags->{$date} ?: array(),
                     ); 
-                }, $dates),
-                'center' => $center,
+                }, $distance_dates),
+                'center_value' => $center_value,
+                'center_rank' => array_map(function($hour) use ($center_value) { return array($hour, $center_value[$hour]); }, array_keys($center_value)),
             );
         }
         return $ret;
