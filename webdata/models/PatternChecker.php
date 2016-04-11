@@ -42,9 +42,48 @@ class PatternChecker
         return array_map(function($k) use ($long_hours) { return array($k, $long_hours[$k]); }, array_keys($long_hours));;
     }
 
+    public function get_pattern_diff2($tmp_hour_value, $p_hour_value)
+    {
+        $long_hours = array();
+        if (count($tmp_hour_value) != count($p_hour_value)) {
+            return false;
+        }
+
+        while (true) {
+            // 先把最高人氣數字取出來當作基準點
+            $tmp_max = max(array_values($tmp_hour_value));
+            $p_max = max(array_values($p_hour_value));
+
+            // 改成 0 ~ 100% 相對數字而非絕對數字
+            $tmp_hour_rate = array_map(function($v) use ($tmp_max) { return $v / $tmp_max; }, $tmp_hour_value);
+            $p_hour_rate = array_map(function($v) use ($p_max) { return $v / $p_max; }, $p_hour_value);
+
+            $hours = array_keys($tmp_hour_rate);
+            $hour_diff = array_combine($hours, array_map(function($hour) use ($tmp_hour_rate, $p_hour_rate) {
+                return abs($tmp_hour_rate[$hour] - $p_hour_rate[$hour]);
+            }, $hours));
+            arsort($hour_diff);
+
+            $max_hour = array_keys($hour_diff)[0];
+            $max_diff = array_values($hour_diff)[0];
+            if ($max_diff <= 0.2) {
+                break;
+            }
+
+            $long_hours[$max_hour] = $max_diff;
+            unset($tmp_hour_value[$max_hour]);
+            if (!$tmp_hour_value) {
+                break;
+            }
+            unset($p_hour_value[$max_hour]);
+
+        }
+        return array_map(function($k) use ($long_hours) { return array($k, $long_hours[$k]); }, array_keys($long_hours));;
+    }
+
     public function pattern_distance($tmp_hour_value, $p_hour_value)
     {
-        $ret = self::get_pattern_diff($tmp_hour_value, $p_hour_value);
+        $ret = self::get_pattern_diff2($tmp_hour_value, $p_hour_value);
         if (false === $ret) {
             return 10000;
         }
@@ -119,7 +158,7 @@ class PatternChecker
                         'distance' => $distance,
                         'week_day' => date('D', strtotime($date)),
                         'values' => array_values(array_map(function($hour) use ($hour_value) { return array($hour, $hour_value[$hour]); }, array_keys($hour_value))),
-                        'diff' => PatternChecker::get_pattern_diff($hour_value, $center_value),
+                        'diff' => PatternChecker::get_pattern_diff2($hour_value, $center_value),
                         'tags' => $date_tags->{$date} ?: array(),
                     ); 
                 }, $distance_dates),

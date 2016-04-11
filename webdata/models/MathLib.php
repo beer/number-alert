@@ -139,7 +139,7 @@ class MathLib
                     foreach ($data_ids as $distance_setid) {
                         list($distance, $dataset_id) = $distance_setid;
                         $distance = $distance_func($dataset[$dataset_id], $centeroids[$cluster_id]);
-                        if ($distance > 3) {
+                        if ($distance > 4) {
                             $distance_map[$cluster_id . '-' . $dataset_id] = $distance;
                         }
                     }
