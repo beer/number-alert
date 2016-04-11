@@ -7,6 +7,9 @@ if (obj) {
     for (var i = 0; i < obj.clusters.length; i ++) {
         $('#result').append($("<h1></h1>").text("cluster " + (i + 1)).css('clear', 'both'));
         $('#result').append('<p>' + obj.clusters[i].center.map(function(k) { return k[0]; }).join(' &lt; ') + '</p>');
+        <?php if (getenv('DEBUG')) { ?>
+        $('#result').append('<p>' + JSON.stringify(obj.clusters[i].center) + '</p>');
+        <?php } ?>
 
         for (var j = 0; j < obj.clusters[i].records.length; j++) {
             record = obj.clusters[i].records[j];
