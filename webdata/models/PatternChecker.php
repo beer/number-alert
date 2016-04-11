@@ -46,6 +46,9 @@ class PatternChecker
 
     public function patterns_center($patterns)
     {
+        if (!$patterns) {
+            return array();
+        }
         $hours = array_keys($patterns[0]);
         $centers = array();
         foreach ($hours as $hour) {
