@@ -55,8 +55,8 @@ class PatternChecker
             $p_max = max(array_values($p_hour_value));
 
             // 改成 0 ~ 100% 相對數字而非絕對數字
-            $tmp_hour_rate = array_map(function($v) use ($tmp_max) { return $v / $tmp_max; }, $tmp_hour_value);
-            $p_hour_rate = array_map(function($v) use ($p_max) { return $v / $p_max; }, $p_hour_value);
+            $tmp_hour_rate = array_map(function($v) use ($tmp_max) { return $tmp_max ? $v / $tmp_max : 0; }, $tmp_hour_value);
+            $p_hour_rate = array_map(function($v) use ($p_max) { return $p_max ? $v / $p_max : 0; }, $p_hour_value);
 
             $hours = array_keys($tmp_hour_rate);
             $hour_diff = array_combine($hours, array_map(function($hour) use ($tmp_hour_rate, $p_hour_rate) {
@@ -66,11 +66,8 @@ class PatternChecker
 
             $max_hour = array_keys($hour_diff)[0];
             $max_diff = array_values($hour_diff)[0];
-            if ($max_diff <= 0.2) {
-                break;
-            }
 
-            $long_hours[$max_hour] = $max_diff;
+            $long_hours[$max_hour] = round($max_diff, 2);
             unset($tmp_hour_value[$max_hour]);
             if (!$tmp_hour_value) {
                 break;
@@ -87,7 +84,7 @@ class PatternChecker
         if (false === $ret) {
             return 10000;
         }
-        return count($ret);
+        return array_sum(array_map(function($r) { return $r[1]; }, $ret));
 
     }
 
@@ -146,7 +143,7 @@ class PatternChecker
                 $center_value = array();
             }
 
-            $ret->clusters[] = array(
+            $cluster = array(
                 'records' => array_map(function($distance_date) use ($day_hour_value, $center_value, $date_tags) {
                     list($distance, $date) = $distance_date;
                     $hour_value = $day_hour_value[$date];
@@ -165,6 +162,8 @@ class PatternChecker
                 'center_value' => $center_value,
                 'center_rank' => array_map(function($hour) use ($center_value) { return array($hour, $center_value[$hour]); }, array_keys($center_value)),
             );
+            usort($cluster['records'], function($a, $b) { return MathLib::number_compare($a['distance'], $b['distance']); });
+            $ret->clusters[] = $cluster;
         }
         return $ret;
     }
