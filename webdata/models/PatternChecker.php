@@ -94,6 +94,10 @@ class PatternChecker
             return array();
         }
         $hours = array_keys($patterns[0]);
+        foreach ($patterns as $id => $pattern) {
+            $max_value = max($pattern);
+            $patterns[$id] = array_map(function($v) use ($max_value) { return ($max_value) ? ($v / $max_value) : 0;}, $pattern);
+        }
         $centers = array();
         foreach ($hours as $hour) {
             $centers[$hour] = MathLib::getMedian(array_map(function($pattern) use ($hour) { return $pattern[$hour]; }, $patterns));
