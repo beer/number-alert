@@ -20,16 +20,17 @@ if (obj) {
             span_dom.append('<p>' + record.date + '(' + record.week_day + ') ' + record.tags.join(',') + '</p>');
             span_dom.attr('title', record.values.map(function(v) { return v[0] + ':' + v[1]; }).join("\n"));
             str = '<p>distance=' + record.distance;
+            span_dom.append(str);
             if (record.diff.length) {
                 str += ': ' + record.diff.map(function(d) { return d[0] + '(' + d[1] + ')'; }).join(',');
             }
             str += '</p>';
-            span_dom.append(str);
-            canvas_dom = $('<canvas>').attr({height: height - 20, width: width});
+            canvas_dom = $('<canvas>').attr({height: height, width: width});
             c = canvas_dom[0];
             ctx = c.getContext("2d");
             ctx.moveTo(0,0);
             max_value = record.values.map(function(a) { return a[1]; }).sort(function(a,b){ return a - b; }).reverse()[0];
+            span_dom.append('<p>max: ' + max_value + '</p>');
             for (var k = 0; k < record.values.length; k ++) {
                 hour = record.values[k][0];
                 value = record.values[k][1];
