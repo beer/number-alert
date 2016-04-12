@@ -117,7 +117,7 @@ class MathLib
                 $data_ids = array_values($data_ids);
                 $cluster_set[$id] = $data_ids;
                 if ($data_ids) {
-                    usort($cluster_set[$id], function($a, $b) { return $a[0] - $b[0]; });
+                    usort($cluster_set[$id], function($a, $b) { return MathLib::number_compare($a[0], $b[0]); });
                     $centeroids[$id] = $centeroid_func(array_map(function($k) use ($dataset) { return $dataset[$k[1]]; }, $data_ids));
                 } else {
                     unset($cluster_set[$id]);
@@ -191,7 +191,7 @@ class MathLib
                 $cluster_set[$i] = array_map(function($record) use ($dataset, $distance_func, $centeroids, $i) {
                     return array($distance_func($centeroids[$i], $dataset[$record[1]]), $record[1]);
                 }, $cluster_set[$i]);
-                usort($cluster_set[$i], function($a, $b) { return $a[0] - $b[0]; });
+                usort($cluster_set[$i], function($a, $b) { return MathLib::number_compare($a[0], $b[0]); });
                 $cluster_set[$i] = array_values($cluster_set[$i]);
 
                 unset($centeroids[$j]);
@@ -203,6 +203,17 @@ class MathLib
             }
         }
         return array($cluster_set, $centeroids);
+    }
+
+    public function number_compare($a, $b)
+    {
+        if ($a > $b) {
+            return 1;
+        }
+        if ($b > $a) {
+            return -1;
+        }
+        return 0;
     }
 }
 
