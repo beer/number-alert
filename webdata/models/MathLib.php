@@ -139,16 +139,22 @@ class MathLib
                     foreach ($data_ids as $distance_setid) {
                         list($distance, $dataset_id) = $distance_setid;
                         $distance = $distance_func($dataset[$dataset_id], $centeroids[$cluster_id]);
-                        if ($distance > 4) {
-                            $distance_map[$cluster_id . '-' . $dataset_id] = $distance;
+                        if (!array_key_exists($cluster_id, $distance_map)) {
+                            if ($distance > 0) {
+                                $distance_map[$cluster_id] = array('dataset_id' => $dataset_id, 'distance' => $distance);
+                            }
+                        } else {
+                            if ($distance > $distance_map[$cluster_id]['distance']) {
+                                $distance_map[$cluster_id] = array('dataset_id' => $dataset_id, 'distance' => $distance);
+                            }
                         }
                     }
                 }
                 // 把 distance 最大的挖出來補足
-                arsort($distance_map);
+                usort($distance_map, function ($a, $b) { return MathLib::number_compare($b['distance'], $a['distance']); });
                 $distance_map = array_slice($distance_map, 0, $k - count($centeroids));
-                foreach ($distance_map as $set_data_id => $distance) {
-                    list($cluster_id, $dataset_id) = explode('-', $set_data_id);
+                foreach ($distance_map as $cluster_id => $distance_data) {
+                    $dataset_id = $distance_data['dataset_id'];
                     $cluster_set[] = array(
                         array(0, $dataset_id),
                     );
