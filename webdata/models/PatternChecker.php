@@ -60,7 +60,7 @@ class PatternChecker
 
             $hours = array_keys($tmp_hour_rate);
             $hour_diff = array_combine($hours, array_map(function($hour) use ($tmp_hour_rate, $p_hour_rate) {
-                return abs($tmp_hour_rate[$hour] - $p_hour_rate[$hour]);
+                return pow(1 + abs($tmp_hour_rate[$hour] - $p_hour_rate[$hour]), 3) - 1;
             }, $hours));
             arsort($hour_diff);
 
