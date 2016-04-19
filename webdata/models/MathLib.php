@@ -130,6 +130,7 @@ class MathLib
 
             list($cluster_set, $centeroids) = self::mergeCenteroids($dataset, $cluster_set, $centeroids, $distance_func, $centeroid_func);
 
+            // 如果 $centeroids 數量小於 $k ，就從各 cluster 中找出最遠的拿出來獨立成為新的 centeroid
             if (count($centeroids) < $k) {
                 $distance_map = array();
                 foreach ($cluster_set as $cluster_id => $data_ids) {
@@ -170,7 +171,7 @@ class MathLib
     }
 
     /**
-     * mergeCenteroids 把 centeroids 太接近的合在一起
+     * mergeCenteroids 把 centeroids 太接近的合在一起(只要 cluster_a 距離 cluster_b 小於 cluster_b 自己本身最遠的一個點，就把 cluster_a 併進 cluster_b)
      * 
      * @param array $cluster_set 
      * @param array $centeroids 
@@ -188,7 +189,7 @@ class MathLib
                 }
 
                 $distance = $distance_func($centeroids[$i], $centeroids[$j]);
-                if ($distance >= 3) {
+                if ($distance >= max(array_map(function($s) { return $s[0]; }, $cluster_set[$j]))) {
                     continue;
                 }
 
