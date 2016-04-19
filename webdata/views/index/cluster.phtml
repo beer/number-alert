@@ -4,12 +4,38 @@
 var obj = <?= json_encode($this->cluster_set, JSON_PRETTY_PRINT) ?>;
 if (obj) {
     $('#result').html('');
+    var cluster_center_dom = $('<div></div>');
+    cluster_center_dom.append($('<h1></h1>').text('中心點').css('clear', 'both')).attr('id', 'result-centers');
+    $('#result').append(cluster_center_dom);
     for (var i = 0; i < obj.clusters.length; i ++) {
         $('#result').append($("<h1></h1>").text("cluster " + (i + 1)).css('clear', 'both'));
-        $('#result').append('<p>' + obj.clusters[i].center_rank.map(function(k) { return k[0]; }).join(' &lt; ') + '</p>');
+        $('#result').append('<p>' + obj.clusters[i].center_value.map(function(k) { return k[0]; }).join(' &lt; ') + '</p>');
+
         <?php if (getenv('DEBUG')) { ?>
-        $('#result').append('<p>' + JSON.stringify(obj.clusters[i].center_value) + '</p>');
         <?php } ?>
+
+        span_dom = $('<span></span>');
+        width = 200;
+        height = 100;
+        span_dom.css({width: width, height: '100%', float: 'left',border: '1px solid black'});
+        span_dom.append('<p>' + (i + 1) + '平均值</p>');
+        span_dom.append('<p>小時數: ' + obj.clusters[i].center_value.length + '</p>');
+        span_dom.append('<p>日期數: ' + obj.clusters[i].records.length + '</p>');
+        canvas_dom = $('<canvas>').attr({height: height, width: width});
+        c = canvas_dom[0];
+        ctx = c.getContext("2d");
+        ctx.moveTo(0,0);
+        max_value = obj.clusters[i].center_value.map(function(a) { return a[1]; }).sort(function(a,b){ return a - b; }).reverse()[0];
+        for (var k = 0; k < obj.clusters[i].center_value.length; k ++) {
+            hour = obj.clusters[i].center_value[k][0];
+            value = obj.clusters[i].center_value[k][1];
+            ctx.lineTo(width * (hour - 6) / 24 ,Math.floor(height- (height - 20)* value / max_value));
+        }
+
+        ctx.stroke();
+        span_dom.append(canvas_dom);
+        $('#result').append(span_dom);
+        $('#result-centers').append(span_dom);
 
         for (var j = 0; j < obj.clusters[i].records.length; j++) {
             record = obj.clusters[i].records[j];
