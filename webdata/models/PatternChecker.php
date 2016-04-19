@@ -45,6 +45,17 @@ class PatternChecker
     public function get_pattern_diff2($tmp_hour_value, $p_hour_value)
     {
         $long_hours = array();
+
+        foreach (array_keys($tmp_hour_value) as $k) {
+            if (!array_key_exists($k, $p_hour_value)) {
+                $p_hour_value[$k] = 0;
+            }
+        }
+        foreach (array_keys($p_hour_value) as $k) {
+            if (!array_key_exists($k, $tmp_hour_value)) {
+                $tmp_hour_value[$k] = 0;
+            }
+        }
         if (count($tmp_hour_value) != count($p_hour_value)) {
             return false;
         }
