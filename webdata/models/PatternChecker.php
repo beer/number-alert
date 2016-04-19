@@ -174,8 +174,7 @@ class PatternChecker
                         'tags' => $date_tags->{$date} ?: array(),
                     ); 
                 }, $distance_dates),
-                'center_value' => $center_value,
-                'center_rank' => array_map(function($hour) use ($center_value) { return array($hour, $center_value[$hour]); }, array_keys($center_value)),
+                'center_value' => array_map(function($hour) use ($center_value) { return array($hour, $center_value[$hour]); }, array_keys($center_value)),
             );
             usort($cluster['records'], function($a, $b) { return MathLib::number_compare($a['distance'], $b['distance']); });
             $ret->clusters[] = $cluster;
