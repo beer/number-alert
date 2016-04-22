@@ -93,6 +93,7 @@ class MathLib
             $showed_centeroids[$centeroid_hash] = true;
             $cluster_set = array_fill(0, count($centeroids), array());
 
+            // 先把所有的資料都跟最靠近的 $centeroids 靠攏
             foreach ($dataset as $dataset_id => $v) {
                 $min_distance = null;
                 $min_center = null;
@@ -112,6 +113,7 @@ class MathLib
                 $cluster_set[$min_center][$dataset_id] = array($min_distance, $dataset_id);
             }
 
+            // 算出新的 $centeroids
             $centeroids = array();
             foreach ($cluster_set as $id => $data_ids) {
                 $data_ids = array_values($data_ids);
@@ -128,6 +130,7 @@ class MathLib
             $cluster_set = array_values($cluster_set);
             $centeroids = array_values($centeroids);
 
+            // 合併太接近的 $centeroids
             list($cluster_set, $centeroids) = self::mergeCenteroids($dataset, $cluster_set, $centeroids, $distance_func, $centeroid_func);
 
             // 如果 $centeroids 數量小於 $k ，就從各 cluster 中找出最遠的拿出來獨立成為新的 centeroid
@@ -167,6 +170,7 @@ class MathLib
             $cluster_set = array_values($cluster_set);
 
         }
+
         return $cluster_set;
     }
 
