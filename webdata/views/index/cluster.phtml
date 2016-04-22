@@ -1,8 +1,37 @@
 <?= $this->partial('/common/header.phtml', $this) ?>
+<table id="distance-table" class="table"></table>
 <div id="result"></div>
 <script>
 var obj = <?= json_encode($this->cluster_set, JSON_PRETTY_PRINT) ?>;
 if (obj) {
+    $('#distance-table').html('');
+    var tr_dom = $('<tr></tr>');
+    tr_dom.append($('<td></td>').text('id'));
+    tr_dom.append($('<td></td>').text('最長距離'));
+    tr_dom.append($('<td></td>').text('數量'));
+    for (var i = 0; i < obj.clusters.length; i ++) {
+        tr_dom.append($('<td></td>').text(' vs ' + i));
+    }
+    $('#distance-table').append($('<thead></thead>').append(tr_dom));
+    for (var i = 0; i < obj.clusters.length; i ++) {
+        var tr_dom = $('<tr></tr>');
+        tr_dom.append($('<td></td>').text(i));
+        distances = obj.clusters[i].records.map(function(r) { return r.distance; });
+        distances = distances.sort(function(a, b){ return b - a; });
+        tr_dom.append($('<td></td>').text(distances[0]));
+        tr_dom.append($('<td></td>').text(obj.clusters[i].records.length));
+        for (var j = 0; j < obj.clusters[i].center_distances.length; j ++) {
+            if (i == j) {
+                tr_dom.append($('<td></td>').text('-'));
+            } else {
+                tr_dom.append($('<td></td>').text(obj.clusters[i].center_distances[j][1]));
+            }
+        }
+
+        $('#distance-table').append($('<thead></thead>').append(tr_dom));
+    }
+
+
     $('#result').html('');
     var cluster_center_dom = $('<div></div>');
     cluster_center_dom.append($('<h1></h1>').text('中心點').css('clear', 'both')).attr('id', 'result-centers');
@@ -21,6 +50,7 @@ if (obj) {
         span_dom.append('<p>' + (i + 1) + '平均值</p>');
         span_dom.append('<p>小時數: ' + obj.clusters[i].center_value.length + '</p>');
         span_dom.append('<p>日期數: ' + obj.clusters[i].records.length + '</p>');
+        span_dom.attr('title', obj.clusters[i].center_value.map(function(v) { return v[0] + ':' + v[1]; }).join("\n"));
         canvas_dom = $('<canvas>').attr({height: height, width: width});
         c = canvas_dom[0];
         ctx = c.getContext("2d");
