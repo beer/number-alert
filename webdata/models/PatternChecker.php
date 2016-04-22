@@ -89,6 +89,39 @@ class PatternChecker
         return array_map(function($k) use ($long_hours) { return array($k, $long_hours[$k]); }, array_keys($long_hours));;
     }
 
+    public function get_pattern_diff3($tmp_hour_value, $p_hour_value)
+    {
+        $long_hours = array();
+
+        foreach (array_keys($tmp_hour_value) as $k) {
+            if (!array_key_exists($k, $p_hour_value)) {
+                $p_hour_value[$k] = 0;
+            }
+        }
+        foreach (array_keys($p_hour_value) as $k) {
+            if (!array_key_exists($k, $tmp_hour_value)) {
+                $tmp_hour_value[$k] = 0;
+            }
+        }
+
+        return array_map(function($k) use ($p_hour_value, $tmp_hour_value) {
+            return array(
+                $k,
+                abs($tmp_hour_value[$k] - $p_hour_value[$k]),
+            );
+        }, array_keys($tmp_hour_value));
+    }
+
+    public function pattern_distance3($tmp_hour_value, $p_hour_value)
+    {
+        $ret = self::get_pattern_diff3($tmp_hour_value, $p_hour_value);
+        if (false === $ret) {
+            return 10000;
+        }
+        return array_sum(array_map(function($r) { return $r[1]; }, $ret));
+
+    }
+
     public function pattern_distance($tmp_hour_value, $p_hour_value)
     {
         $ret = self::get_pattern_diff2($tmp_hour_value, $p_hour_value);
@@ -97,6 +130,20 @@ class PatternChecker
         }
         return array_sum(array_map(function($r) { return $r[1]; }, $ret));
 
+    }
+
+    public function patterns_center3($patterns)
+    {
+        if (!$patterns) {
+            return array();
+        }
+        $hours = call_user_func_array('array_merge', array_map('array_keys', $patterns));
+        $hours = array_unique($hours);
+
+        $ret = array_map(function($hour) use ($patterns) {
+            return MathLib::getMedian(array_map(function($pattern) use ($hour) { return $pattern[$hour]; }, $patterns));
+        }, $hours);
+        return array_combine($hours, $ret);
     }
 
     public function patterns_center($patterns)
@@ -143,38 +190,45 @@ class PatternChecker
         }
 
 
-        $clustered = MathLib::kmean($day_hour_value, $k, array('PatternChecker', 'pattern_distance'), array('PatternChecker', 'patterns_center'));
+        $clustered = MathLib::kmean($day_hour_value, $k, array('PatternChecker', 'pattern_distance3'), array('PatternChecker', 'patterns_center3'));
         uasort($clustered, function($a, $b) { return count($a) - count($b); });
 
         $ret = new StdClass;
         $ret->clusters = array();
+        $center_values = array_map(function($distance_dates) use ($day_hour_value) {
+            return PatternChecker::patterns_center3(array_map(function($distance_date) use ($day_hour_value) {
+                list($distance, $date) = $distance_date;
+                return $day_hour_value[$date];
+            }, $distance_dates));
+        }, $clustered);
+        ksort($center_values);
+
         foreach ($clustered as $cluster_id => $distance_dates) {
-            if ($distance_dates) {
-                $center_value = PatternChecker::patterns_center(array_map(function($distance_date) use ($day_hour_value) {
-                    list($distance, $date) = $distance_date;
-                    return $day_hour_value[$date];
-                }, $distance_dates));
-            } else {
-                $center_value = array();
-            }
+            $center_value = $center_values[$cluster_id];
 
             $cluster = array(
                 'records' => array_map(function($distance_date) use ($day_hour_value, $center_value, $date_tags) {
                     list($distance, $date) = $distance_date;
                     $hour_value = $day_hour_value[$date];
                     ksort($hour_value);
-                    $distance = PatternChecker::pattern_distance($hour_value, $center_value);
+                    $distance = PatternChecker::pattern_distance3($hour_value, $center_value);
 
                     return array(
                         'date' => $date,
                         'distance' => $distance,
                         'week_day' => date('D', strtotime($date)),
                         'values' => array_values(array_map(function($hour) use ($hour_value) { return array($hour, $hour_value[$hour]); }, array_keys($hour_value))),
-                        'diff' => PatternChecker::get_pattern_diff2($hour_value, $center_value),
+                        'diff' => PatternChecker::get_pattern_diff3($hour_value, $center_value),
                         'tags' => $date_tags->{$date} ?: array(),
                     ); 
                 }, $distance_dates),
                 'center_value' => array_map(function($hour) use ($center_value) { return array($hour, $center_value[$hour]); }, array_keys($center_value)),
+                'center_distances' => array_map(function($id) use ($center_values, $center_value) {
+                    return array(
+                        $id,
+                        PatternChecker::pattern_distance3($center_value, $center_values[$id]),
+                    );
+                }, array_keys($center_values)),
             );
             usort($cluster['records'], function($a, $b) { return MathLib::number_compare($a['distance'], $b['distance']); });
             $ret->clusters[] = $cluster;
