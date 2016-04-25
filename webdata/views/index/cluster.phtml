@@ -10,12 +10,12 @@ if (obj) {
     tr_dom.append($('<td></td>').text('最長距離'));
     tr_dom.append($('<td></td>').text('數量'));
     for (var i = 0; i < obj.clusters.length; i ++) {
-        tr_dom.append($('<td></td>').text(' vs ' + i));
+        tr_dom.append($('<td></td>').text(' vs ' + (i + 1)));
     }
     $('#distance-table').append($('<thead></thead>').append(tr_dom));
     for (var i = 0; i < obj.clusters.length; i ++) {
         var tr_dom = $('<tr></tr>');
-        tr_dom.append($('<td></td>').text(i));
+        tr_dom.append($('<td></td>').text(i + 1));
         distances = obj.clusters[i].records.map(function(r) { return r.distance; });
         distances = distances.sort(function(a, b){ return b - a; });
         tr_dom.append($('<td></td>').text(distances[0]));
