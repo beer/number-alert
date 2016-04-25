@@ -192,6 +192,7 @@ class PatternChecker
 
         $clustered = MathLib::kmean($day_hour_value, $k, array('PatternChecker', 'pattern_distance3'), array('PatternChecker', 'patterns_center3'));
         uasort($clustered, function($a, $b) { return count($a) - count($b); });
+        $id_map = array_combine(array_keys($clustered), range(0, count($clustered) - 1));
 
         $ret = new StdClass;
         $ret->clusters = array();
@@ -205,6 +206,13 @@ class PatternChecker
 
         foreach ($clustered as $cluster_id => $distance_dates) {
             $center_value = $center_values[$cluster_id];
+            $center_distances = array_map(function($id) use ($center_values, $center_value, $id_map) {
+                return array(
+                    $id_map[$id],
+                    PatternChecker::pattern_distance3($center_value, $center_values[$id]),
+                );
+            }, array_keys($center_values));
+            usort($center_distances, function($a, $b) { return $a[0] - $b[0]; });
 
             $cluster = array(
                 'records' => array_map(function($distance_date) use ($day_hour_value, $center_value, $date_tags) {
@@ -223,12 +231,7 @@ class PatternChecker
                     ); 
                 }, $distance_dates),
                 'center_value' => array_map(function($hour) use ($center_value) { return array($hour, $center_value[$hour]); }, array_keys($center_value)),
-                'center_distances' => array_map(function($id) use ($center_values, $center_value) {
-                    return array(
-                        $id,
-                        PatternChecker::pattern_distance3($center_value, $center_values[$id]),
-                    );
-                }, array_keys($center_values)),
+                'center_distances' => $center_distances,
             );
             usort($cluster['records'], function($a, $b) { return MathLib::number_compare($a['distance'], $b['distance']); });
             $ret->clusters[] = $cluster;
